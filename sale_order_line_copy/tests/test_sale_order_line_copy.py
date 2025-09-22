@@ -4,9 +4,8 @@
 from odoo.tests import common, tagged
 
 
-@tagged('post_install', '-at_install')
+@tagged("post_install", "-at_install")
 class SaleOrderLineProductConfiguratorTest(common.TransactionCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -35,22 +34,23 @@ class SaleOrderLineProductConfiguratorTest(common.TransactionCase):
         )
 
     def test_copy_sale_order_line(self):
-        line = self.sale_line_obj.create({
-            "name": "test",
-            "order_id": self.sale_order.id,
-            "product_id": self.product.id,
-            "product_uom_qty": 2,
-            "sequence": 10,  
-        })
-        
+        line = self.sale_line_obj.create(
+            {
+                "name": "test",
+                "order_id": self.sale_order.id,
+                "product_id": self.product.id,
+                "product_uom_qty": 2,
+                "sequence": 10,
+            }
+        )
+
         self.assertEqual(len(self.sale_order.order_line), 1)
-        
+
         line.copy_sale_order_line()
-        
+
         self.assertEqual(len(self.sale_order.order_line), 2)
-        
-        new_line = self.sale_order.order_line.filtered(
-            lambda l1: l.id != line.id)
+
+        new_line = self.sale_order.order_line.filtered(lambda l1: l1.id != line.id)
         self.assertEqual(new_line.product_id, self.product)
         self.assertEqual(new_line.product_uom_qty, 2)
-        self.assertEqual(new_line.sequence, 20)  
+        self.assertEqual(new_line.sequence, 20)
