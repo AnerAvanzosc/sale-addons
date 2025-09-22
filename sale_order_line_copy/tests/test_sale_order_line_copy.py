@@ -1,12 +1,11 @@
 # Copyright 2020 Mikel Arregi - AvanzOSC
 # License AGPL-3 - See http://www.gnu.org/licenses/agpl-3.0.html
 
-from odoo.tests import common
+from odoo.tests import common, tagged
 
 
-@common.at_install(False)
-@common.post_install(True)
-class SaleOrderLineProductConfiguratorTest(common.SavepointCase):
+@tagged('post_install', '-at_install')
+class SaleOrderLineProductConfiguratorTest(common.TransactionCase):
 
     @classmethod
     def setUpClass(cls):
@@ -36,14 +35,22 @@ class SaleOrderLineProductConfiguratorTest(common.SavepointCase):
         )
 
     def test_copy_sale_order_line(self):
-        new_line = self.sale_line_obj.new(
-            {
-                "name": "test",
-                "order_id": self.sale_order.id,
-                "product_id": self.product.id,
-                "product_uom_qty": 2,
-            }
-        )
-        self.sale_order.order_line = new_line
-        self.sale_order.order_line.copy_sale_order_line()
+        line = self.sale_line_obj.create({
+            "name": "test",
+            "order_id": self.sale_order.id,
+            "product_id": self.product.id,
+            "product_uom_qty": 2,
+            "sequence": 10,  
+        })
+        
+        self.assertEqual(len(self.sale_order.order_line), 1)
+        
+        line.copy_sale_order_line()
+        
         self.assertEqual(len(self.sale_order.order_line), 2)
+        
+        new_line = self.sale_order.order_line.filtered(
+            lambda l1: l.id != line.id)
+        self.assertEqual(new_line.product_id, self.product)
+        self.assertEqual(new_line.product_uom_qty, 2)
+        self.assertEqual(new_line.sequence, 20)  
